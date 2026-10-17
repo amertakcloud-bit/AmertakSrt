@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="km">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Khmer Subtitle Studio — Audio to SRT</title>
+  <meta name="description" content="បង្កើត Subtitle ភាសាខ្មែរ (SRT) ពី Audio ដោយប្រើ Gemini">
+  <meta name="referrer" content="no-referrer">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238b5cf6'/%3E%3Cpath d='M7 20h2v-8H7zm4 4h2V8h-2zm4-3h2V11h-2zm4 3h2V8h-2zm4-4h2v-8h-2z' fill='white'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M4 13h2v-2H4zm3 4h2V7H7zm3 3h2V4h-2zm3-3h2V7h-2zm3-4h2v-2h-2zm3 2h2v-2h-2z"/></svg>
+      </span>
+      <div>
+        <h1>Khmer Subtitle Studio</h1>
+        <p>Audio → SRT ជាមួយ Gemini</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="healthChip" class="chip" title="ស្ថានភាព Backend"><i class="dot"></i><span>កំពុងពិនិត្យ…</span></span>
+      <button id="keyBtn" class="btn btn-ghost" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M7 14a4 4 0 1 1 3.87-5H21v3h-2v2h-3v-2h-5.13A4 4 0 0 1 7 14zm0-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>
+        <span id="keyBtnLabel">API Key</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="col-main">
+      <!-- Upload -->
+      <div id="dropzone" class="card dropzone" tabindex="0" role="button" aria-label="ជ្រើសរើស ឬ Drag & Drop ឯកសារ Audio">
+        <input id="fileInput" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.opus,.flac,.webm,.aiff,.mp4" hidden>
+        <div class="dz-icon">
+          <svg viewBox="0 0 24 24" width="34" height="34"><path fill="currentColor" d="M12 3 7 8h3.5v6h3V8H17zM5 17v3h14v-3h-2v1H7v-1z"/></svg>
+        </div>
+        <h2>ទម្លាក់ឯកសារ Audio នៅទីនេះ</h2>
+        <p>ឬ <u>ចុចដើម្បីជ្រើសរើស</u> · MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, WebM</p>
+        <p class="muted small" id="limitsHint">&nbsp;</p>
+      </div>
+
+      <!-- Player -->
+      <div id="playerCard" class="card player hidden">
+        <div class="card-head">
+          <div class="file-meta">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z"/></svg>
+            <strong id="fileName">—</strong>
+            <span class="muted small" id="fileInfo"></span>
+          </div>
+          <button id="replaceBtn" class="btn btn-ghost btn-sm" type="button">ប្តូរឯកសារ</button>
+        </div>
+
+        <div class="wave-wrap" id="waveWrap">
+          <div class="wave-scroll" id="waveScroll">
+            <canvas id="wave" height="150"></canvas>
+          </div>
+          <div id="waveMsg" class="wave-msg hidden"></div>
+        </div>
+
+        <div id="subtitlePreview" class="sub-preview" aria-live="off">&nbsp;</div>
+
+        <div class="transport">
+          <div class="transport-left">
+            <button id="back5" class="icon-btn" type="button" title="ថយក្រោយ 5 វិនាទី">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 5V2L7 6l5 4V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+            </button>
+            <button id="playBtn" class="play-btn" type="button" title="Play / Pause (Space)">
+              <svg id="icoPlay" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+              <svg id="icoPause" class="hidden" viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>
+            </button>
+            <button id="fwd5" class="icon-btn" type="button" title="ទៅមុខ 5 វិនាទី">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 5V2l5 4-5 4V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"/></svg>
+            </button>
+            <span class="time" id="timeLabel">00:00.000 / 00:00.000</span>
+          </div>
+          <div class="transport-right">
+            <label class="inline-ctl" title="ល្បឿន">
+              <span>ល្បឿន</span>
+              <select id="rateSel">
+                <option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+                <option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option>
+              </select>
+            </label>
+            <label class="inline-ctl" title="សំឡេង">
+              <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+              <input id="volRange" type="range" min="0" max="1" step="0.05" value="1">
+            </label>
+            <div class="zoom">
+              <button id="zoomOut" class="icon-btn" type="button" title="Zoom ចេញ">−</button>
+              <button id="zoomIn" class="icon-btn" type="button" title="Zoom ចូល">+</button>
+            </div>
+          </div>
+        </div>
+        <audio id="audio" preload="auto"></audio>
+      </div>
+
+      <!-- Settings -->
+      <div class="card settings">
+        <div class="card-head"><h3>Subtitle Settings</h3><span class="muted small">ភាសា៖ ខ្មែរ (km-KH)</span></div>
+        <div class="settings-grid">
+          <label>អក្សរអតិបរមា/បន្ទាត់
+            <input id="setMaxChars" type="number" min="10" max="120" value="42">
+          </label>
+          <label>ចំនួនបន្ទាត់អតិបរមា
+            <select id="setMaxLines"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option></select>
+          </label>
+          <label>រយៈពេលអតិបរមា (វិ)
+            <input id="setMaxDur" type="number" min="1" max="20" step="0.5" value="7">
+          </label>
+          <label>បំបែកពេលស្ងាត់ (វិ)
+            <input id="setPause" type="number" min="0.1" max="3" step="0.1" value="0.7">
+          </label>
+          <label>រយៈពេលអប្បបរមា (វិ)
+            <input id="setMinDur" type="number" min="0.2" max="3" step="0.1" value="0.6">
+          </label>
+          <label class="check">
+            <input id="setShowWords" type="checkbox" checked>
+            <span>បង្ហាញ Word-level timestamps</span>
+          </label>
+        </div>
+        <div class="gen-row">
+          <button id="generateBtn" class="btn btn-primary btn-lg" type="button" disabled>
+            <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="m12 2 2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg>
+            បង្កើត Subtitle ជាមួយ Gemini
+          </button>
+          <button id="cancelBtn" class="btn btn-ghost hidden" type="button">បោះបង់</button>
+          <div id="progress" class="progress hidden" role="status">
+            <div class="bar"><i id="progressFill"></i></div>
+            <span id="progressText"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="col-side">
+      <div class="card editor">
+        <div class="card-head">
+          <h3>Subtitle Editor <span id="cueCount" class="badge">0</span></h3>
+          <div class="toolbar">
+            <button id="addCueBtn" class="btn btn-ghost btn-sm" type="button" title="បន្ថែម Subtitle នៅទីតាំង Playhead">+ បន្ថែម</button>
+            <button id="alignBtn" class="btn btn-ghost btn-sm" type="button" title="Align Timestamp ឡើងវិញសម្រាប់អត្ថបទដែលបានកែ" disabled>⟳ Align</button>
+          </div>
+        </div>
+
+        <div id="warnings" class="warnings hidden" role="alert"></div>
+        <div id="meta" class="meta hidden"></div>
+
+        <div id="cueList" class="cue-list">
+          <div class="empty" id="emptyState">
+            <svg viewBox="0 0 24 24" width="40" height="40"><path fill="currentColor" d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm2 9v2h6v-2zm8 0v2h4v-2zM6 10v2h3v-2zm5 0v2h7v-2z"/></svg>
+            <p>Subtitle នឹងបង្ហាញនៅទីនេះ។<br>ផ្ទុកឯកសារ Audio រួចចុច «បង្កើត Subtitle»។</p>
+          </div>
+        </div>
+
+        <div class="export-bar">
+          <label class="check small"><input id="bomChk" type="checkbox"><span>បន្ថែម UTF-8 BOM</span></label>
+          <button id="exportBtn" class="btn btn-primary" type="button" disabled>
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M5 20h14v-2H5zM19 9h-4V3H9v6H5l7 7z"/></svg>
+            Export .srt
+          </button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- API Key dialog -->
+  <dialog id="keyDialog" class="dialog">
+    <form method="dialog" id="keyForm" autocomplete="off">
+      <h3>Gemini API Key ផ្ទាល់ខ្លួន</h3>
+      <p class="muted small">
+        Key ត្រូវបានរក្សាទុកក្នុង <b>ការចងចាំរបស់ Tab នេះតែប៉ុណ្ណោះ</b> ហើយបញ្ជូនតាម HTTP Header ក្នុងគ្រប់ Request។
+        វាមិនត្រូវបានរក្សាក្នុង localStorage, URL ឬ Log ទេ ហើយនឹងបាត់ពេល Refresh។
+        បើមិនបញ្ចូលទេ Backend នឹងប្រើ Key ពី <code>.env</code>។
+      </p>
+      <div class="key-row">
+        <input id="keyInput" name="gemini-secret" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore placeholder="AIza…">
+        <button id="keyToggle" class="btn btn-ghost btn-sm" type="button">បង្ហាញ</button>
+      </div>
+      <p id="keyStatus" class="key-status" role="status"></p>
+      <div class="dialog-actions">
+        <button id="keyClear" class="btn btn-ghost" type="button">លុប Key</button>
+        <span class="spacer"></span>
+        <button id="keyClose" class="btn btn-ghost" type="button">បិទ</button>
+        <button id="keySave" class="btn btn-primary" type="button">Validate &amp; ប្រើ</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
