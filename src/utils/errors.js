@@ -12,7 +12,9 @@ class AppError extends Error {
 
 // លុប API Key ណាមួយចេញពីសារ មុនបញ្ជូន ឬ Log
 function redact(text) {
-  return String(text ?? '').replace(/AIza[0-9A-Za-z_\-]{20,}/g, '[REDACTED_KEY]');
+  return String(text ?? '')
+    .replace(/AIza[0-9A-Za-z_\-]{20,}/g, '[REDACTED_KEY]')
+    .replace(/\bAQ\.[0-9A-Za-z_.\-]{20,}/g, '[REDACTED_KEY]');
 }
 
 module.exports = { AppError, redact };

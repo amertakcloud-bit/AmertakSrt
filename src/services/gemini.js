@@ -19,7 +19,7 @@ function loadSdk() {
 
 function checkKeyFormat(key) {
   if (!key || !KEY_PATTERN.test(key)) {
-    throw new AppError(401, 'INVALID_API_KEY_FORMAT', 'ទម្រង់ Gemini API Key មិនត្រឹមត្រូវ (ត្រូវចាប់ផ្ដើមដោយ "AIza")។');
+    throw new AppError(401, 'INVALID_API_KEY_FORMAT', 'ទម្រង់ Gemini API Key មិនត្រឹមត្រូវ)។');
   }
 }
 
