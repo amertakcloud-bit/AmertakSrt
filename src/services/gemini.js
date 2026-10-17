@@ -3,7 +3,10 @@ const config = require('../config');
 const { AppError, redact } = require('../utils/errors');
 const { parseTime } = require('../utils/time');
 
-const KEY_PATTERN = /^AIza[0-9A-Za-z_\-]{30,50}$/;
+// Google មានទម្រង់ Key ច្រើន ("AIza…" ចាស់, "AQ.…" ថ្មី) ដូច្នេះ Validate តែទម្រង់ទូទៅ។
+// ភាពត្រឹមត្រូវពិតប្រាកដត្រូវបានពិនិត្យដោយ Gemini (models.get)។
+// មិនកំណត់ Prefix ទេ (AIza…, AQ.…, ឬទម្រង់ថ្មីៗ) — ពិនិត្យតែថាមិនមានដកឃ្លា/តួអក្សរចម្លែក។
+const KEY_PATTERN = /^[\x21-\x7E]{8,512}$/;
 let SDK;
 
 function loadSdk() {
@@ -19,7 +22,7 @@ function loadSdk() {
 
 function checkKeyFormat(key) {
   if (!key || !KEY_PATTERN.test(key)) {
-    throw new AppError(401, 'INVALID_API_KEY_FORMAT', 'ទម្រង់ Gemini API Key មិនត្រឹមត្រូវ)។');
+    throw new AppError(401, 'INVALID_API_KEY_FORMAT', 'Gemini API Key មិនត្រឹមត្រូវ (ខ្លីពេក ឬមានដកឃ្លា/តួអក្សរចម្លែក)។ សូមចម្លងឱ្យគ្រប់។');
   }
 }
 

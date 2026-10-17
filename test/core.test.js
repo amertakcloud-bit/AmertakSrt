@@ -99,10 +99,13 @@ test('Gemini response extraction: interactions word_info + generateContent shape
 });
 
 test('API key handling: format check, user key preferred, redaction', () => {
-  assert.throws(() => gemini.resolveKey('not a key'), /ទម្រង់/);
-assert.throws(() => gemini.resolveKey('short'), /ទម្រង់/);
-const aq = 'AQ.' + 'Ab4_x-'.repeat(12);
-assert.deepEqual(gemini.resolveKey(aq), { key: aq, source: 'user' });
+  assert.throws(() => gemini.resolveKey('not a key'), /មិនត្រឹមត្រូវ/);
+  assert.throws(() => gemini.resolveKey('short'), /មិនត្រឹមត្រូវ/);
+  const other = 'zz_NewFormat-' + 'k9'.repeat(15);
+  assert.deepEqual(gemini.resolveKey(other), { key: other, source: 'user' });
+  const aq = 'AQ.' + 'Ab4_x-'.repeat(12);
+  assert.deepEqual(gemini.resolveKey(aq), { key: aq, source: 'user' });
+  assert.ok(!gemini.mapError(Object.assign(new Error('bad ' + aq), { status: 500 })).message.includes(aq));
   const k = 'AIza' + 'x'.repeat(35);
   assert.deepEqual(gemini.resolveKey(k), { key: k, source: 'user' });
   const mapped = gemini.mapError(Object.assign(new Error(`bad request ${k}`), { status: 500 }));

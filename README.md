@@ -16,7 +16,7 @@
 ## តម្រូវការ
 
 - **Node.js ≥ 20.12** (ណែនាំ 22) — ប្រើ `process.loadEnvFile` ដូច្នេះមិនត្រូវការ `dotenv`
-- Gemini API Key — បង្កើតឥតគិតថ្លៃនៅ <https://aistudio.google.com/apikey>
+- Gemini API Key — បង្កើតឥតគិតថ្លៃនៅ <https://aistudio.google.com/apikey> (ទម្រង់ Key ណាក៏ប្រើបាន៖ `AQ.…`, `AIza…` ឬទម្រង់ថ្មីៗ)
 - ffmpeg — ត្រូវបានដំឡើងស្វ័យប្រវត្តិតាម `ffmpeg-static` (បើចង់ប្រើ ffmpeg ផ្ទាល់ខ្លួន កំណត់ `FFMPEG_PATH`)
 
 ## ការដំឡើង និង Run
@@ -92,7 +92,7 @@ curl -X POST http://localhost:5000/api/export-srt \
 
 - **Key លំនាំដើម** នៅក្នុង `.env` (ក្នុង `.gitignore`) ហើយមិនដែលបញ្ជូនទៅ Browser
 - **Key អ្នកប្រើ** រក្សាក្នុង **ការចងចាំរបស់ Tab** ប៉ុណ្ណោះ (មិនមែន localStorage/sessionStorage/cookie), បញ្ជូនតាម HTTP Header (មិនដែលតាម URL/Query), បាត់ពេល Refresh។ Backend ប្រើ Key របស់អ្នកប្រើជាមុន បើគ្មានទើបប្រើ `.env`
-- Backend **មិន Log** Header/Body/Query (Log តែ method, path, status, ពេលវេលា) ហើយលុបទម្រង់ `AIza…` ចេញពីសារកំហុសគ្រប់ទីកន្លែង
+- Backend **មិន Log** Header/Body/Query (Log តែ method, path, status, ពេលវេលា) ហើយលុបទម្រង់ Key (`AIza…`, `AQ.…`) ចេញពីសារកំហុសគ្រប់ទីកន្លែង
 - Validate ទម្រង់ Key, ប្រភេទ/ទំហំ File (`MAX_FILE_MB`), ទំហំ Audio (`MAX_AUDIO_MINUTES`), decode ដោយ ffmpeg (បដិសេធឯកសារមិនមែន Audio), Rate limit ក្នុងមួយ IP
 - **Cleanup**៖ ឯកសារបណ្តោះអាសន្ន (Upload + Chunk) ត្រូវលុបនៅពេល Response ចប់ (ទោះជោគជ័យ ឬបរាជ័យ/បោះបង់); ឯកសារលើ Gemini Files API ត្រូវលុបភ្លាមក្រោយប្រើ; ឯកសារចាស់ >1 ម៉ោង ត្រូវសម្អាតពេល Start
 - Security headers + CSP (`script-src 'self'`); Transcript ពី Gemini ត្រូវបានបង្ហាញដោយ `textContent` (ការពារ XSS)
@@ -127,7 +127,7 @@ khmer-subtitle-studio-v2/
 
 | បញ្ហា | ដំណោះស្រាយ |
 |---|---|
-| `Gemini API Key មិនត្រឹមត្រូវ` | ពិនិត្យ Key នៅ AI Studio; Key ត្រូវចាប់ផ្តើមដោយ `AIza` |
+| `Gemini API Key មិនត្រឹមត្រូវ` | ពិនិត្យ Key នៅ AI Studio (ចម្លងឱ្យគ្រប់ គ្មានដកឃ្លា); Backend មិនកំណត់ Prefix របស់ Key ទេ (ភាពត្រឹមត្រូវត្រូវបានពិនិត្យដោយ Gemini) |
 | `MODEL_NOT_FOUND` / ប្តូរទៅ fallback | Key/គណនារបស់អ្នកប្រហែលមិនទាន់មានសិទ្ធិប្រើ `gemini-3.5-transcribe` — កែ `GEMINI_TRANSCRIBE_MODEL` តាម Model ដែលអ្នកមាន (សូមមើល <https://ai.google.dev/gemini-api/docs/models>) |
 | `SDK_OUTDATED` | `npm install @google/genai@latest` (ត្រូវការ Interactions API) |
 | `429 QUOTA_EXCEEDED` | លើស Quota ឥតគិតថ្លៃ — រង់ចាំ ឬប្រើ Key ផ្សេង |
